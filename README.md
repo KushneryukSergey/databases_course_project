@@ -4,4 +4,4 @@
 
 #### Entity-relationship diagram - done
 
-![ERD](./erd/erd_v1.png)
+![ERD](./erd/erd_v2.png)
