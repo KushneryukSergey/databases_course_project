@@ -4,4 +4,8 @@
 
 #### Entity-relationship diagram - done
 
-![ERD](./erd/erd_v2.png)
+![ERD](./erd.png)
+
+#### Logical model - done
+
+![log_model](./logic_model.png)
