@@ -13,5 +13,5 @@
 
 #### Physical model - done
 
-![Физическая модель](./physical_model.pdf)
+[Физическая модель](./physical_model.pdf)
 
