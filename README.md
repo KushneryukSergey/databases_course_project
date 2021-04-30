@@ -15,3 +15,8 @@
 
 [Физическая модель](./physical_model.pdf)
 
+#### Таблица - done
+
+[Таблица и схема](./mangareader_console.sql)
+
+#### Inserts - in process
