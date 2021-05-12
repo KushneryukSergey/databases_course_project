@@ -11,7 +11,6 @@ CREATE TABLE mangareader.users
     register_dttm   timestamp    NOT NULL DEFAULT current_timestamp
 );
 
-
 DROP TABLE IF EXISTS mangareader.authors;
 CREATE TABLE mangareader.authors
 (
@@ -35,7 +34,7 @@ CREATE TABLE mangareader.comics
 (
     comic_id       integer      NOT NULL UNIQUE PRIMARY KEY,
     comic_nm       varchar(255) NOT NULL,
-    chapter_cnt     integer     NOT NULL DEFAULT 0,
+    chapter_cnt    integer      NOT NULL DEFAULT 0,
     comic_page_url text         NOT NULL,
     add_dttm       timestamp    NOT NULL DEFAULT current_timestamp
 );
@@ -47,7 +46,7 @@ CREATE TABLE mangareader.chapters
 (
     chapter_id      integer   NOT NULL UNIQUE PRIMARY KEY,
     comic_id        integer   NOT NULL,
-    translator_id   integer   DEFAULT NULL,  -- in case when language is original
+    translator_id   integer            DEFAULT NULL, -- in case when language is original
     chapter_num     integer   NOT NULL,
     chapter_nm      text      NOT NULL,
     page_cnt        integer   NOT NULL DEFAULT 0,
@@ -55,9 +54,8 @@ CREATE TABLE mangareader.chapters
     valid_from_dttm timestamp NOT NULL DEFAULT current_timestamp,
     valid_to_dttm   timestamp NOT NULL DEFAULT current_timestamp,
     CONSTRAINT fk_comics FOREIGN KEY (comic_id) REFERENCES mangareader.comics (comic_id),
-    CONSTRAINT fk_translators FOREIGN KEY (translator_id) REFERENCES mangareader.translators(translator_id)
+    CONSTRAINT fk_translators FOREIGN KEY (translator_id) REFERENCES mangareader.translators (translator_id)
 );
-
 
 DROP TABLE IF EXISTS mangareader.comments;
 CREATE TABLE mangareader.comments
