@@ -135,6 +135,11 @@ INSERT INTO mangareader.users
  user_nm,
  user_page_url)
 VALUES (0, 'admin', 'mangareader.com/u/0');
+INSERT INTO mangareader.users
+(user_id,
+ user_nm,
+ user_page_url)
+VALUES (1001, 'spamer', 'mangareader.com/u/1001');
 COPY mangareader.users
     (user_id, user_nm, user_avatar_url, user_page_url, register_dttm)
 FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_users.csv'
@@ -245,6 +250,65 @@ COPY mangareader.pages_read
 from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_pages_read.csv'
 DELIMITER ','
 CSV HEADER;
+
+
+-------------------CRUD--------------------------
+UPDATE mangareader.users
+SET user_nm = '$UPERshoujoG1RL'
+WHERE user_nm = 'shoujoG1RL';
+
+SELECT * from mangareader.users;
+
+DELETE FROM mangareader.users
+WHERE user_nm = 'spamer';
+
+
+-----------------------------Запросы к базе данных----------------------------
+-- Todo данных пока мало, поэтому результативность этих запросов немного сложновато проверить
+-- Готов добавить еще данных в ближайшее время для этого
+
+-- 1. Найдем количестве актуальных глав на каждом языке и отсортируем, уберем те, на которым меньше 5 глав
+-- Получим список популярных языков, отсортированный по количеству глав на нем
+
+SELECT
+       ch.lang AS language,
+       count(ch.chapter_id) AS chapters
+FROM mangareader.chapters ch
+WHERE ch.valid_to_dttm = '01.01.5999 00:00:00'
+GROUP BY ch.lang
+HAVING count(*) >= 5
+ORDER BY chapters DESC;
+
+
+-- 2. Хотим узнать, что последнее сделали переводчики на сайте, т.е. какие последние главы перевели
+-- Для каждого переводчика узнаем три последних актуальных переведенных главы
+
+
+SELECT ordered_last_chapters.translator_nm,
+       ordered_last_chapters.ch_order,
+       ordered_last_chapters.chapter_nm,
+       c.comic_nm,
+       ordered_last_chapters.valid_from_dttm
+FROM
+    mangareader.comics c
+INNER JOIN
+(SELECT row_number() over (partition by tr.translator_id
+                          order by last_chapters.valid_from_dttm DESC) as ch_order,
+       last_chapters.*,
+       tr.translator_nm
+FROM
+    mangareader.translators tr
+INNER JOIN (SELECT ch.comic_id,
+                   ch.chapter_nm,
+                   ch.translator_id,
+                   ch.valid_from_dttm
+FROM mangareader.chapters ch
+WHERE ch.valid_to_dttm = '01.01.5999 00:00:00') AS last_chapters
+    ON last_chapters.translator_id = tr.translator_id) AS ordered_last_chapters
+ON ordered_last_chapters.comic_id = c.comic_id
+WHERE ordered_last_chapters.ch_order <= 3;
+
+
 
 ---------------Добавляем индексы------------------------
 create index on mangareader.users(user_id);
