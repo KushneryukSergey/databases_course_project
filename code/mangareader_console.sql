@@ -137,7 +137,7 @@ INSERT INTO mangareader.users
 VALUES (0, 'admin', 'mangareader.com/u/0');
 COPY mangareader.users
     (user_id, user_nm, user_avatar_url, user_page_url, register_dttm)
-FROM '/home/skushneryuk/study/databases/project/inserts/mangareader_users.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_users.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -150,7 +150,7 @@ INSERT INTO mangareader.authors
 VALUES (0, 'Masashi Kishimoto', 'mangareader.com/a/0');
 COPY mangareader.authors
     (author_id, author_nm, author_avatar_url, author_page_url)
-FROM '/home/skushneryuk/study/databases/project/inserts/mangareader_authors.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_authors.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -163,7 +163,7 @@ INSERT INTO mangareader.translators
 VALUES (0, 'Narutoproject', 'mangareader.com/t/0');
 COPY mangareader.translators
     (translator_id, translator_nm, translator_avatar_url, translator_page_url)
-FROM '/home/skushneryuk/study/databases/project/inserts/mangareader_translators.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_translators.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -176,7 +176,7 @@ INSERT INTO mangareader.comics
 VALUES (0, 'Naruto', 1, 'mangareader.com/comic/naruto');
 COPY mangareader.comics
     (comic_id, comic_nm, chapter_cnt, comic_page_url, add_dttm)
-FROM '/home/skushneryuk/study/databases/project/inserts/mangareader_comics.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comics.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -192,7 +192,7 @@ INSERT INTO mangareader.chapters
 VALUES (0, 0, 0, 1, 'Глава 1', 20, 'ru');
 COPY mangareader.chapters
     (chapter_id, comic_id, translator_id, chapter_num, chapter_nm, page_cnt, lang, valid_from_dttm, valid_to_dttm)
-FROM '/home/skushneryuk/study/databases/project/inserts/mangareader_chapters.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_chapters.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -202,7 +202,7 @@ INSERT INTO mangareader.comments
 VALUES (0, 0, 1, 'лутшая манга евер');
 COPY mangareader.comments
     (comment_id, comic_id, user_id, comment_txt, comment_dttm)
-from '/home/skushneryuk/study/databases/project/inserts/mangareader_comments.csv'
+from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comments.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -212,7 +212,7 @@ INSERT INTO mangareader.favorites
 VALUES (1, 0);
 COPY mangareader.favorites
     (user_id, comic_id)
-from '/home/skushneryuk/study/databases/project/inserts/mangareader_favorites.csv'
+from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_favorites.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -222,7 +222,7 @@ INSERT INTO mangareader.comic_authors
 VALUES (0, 0, 'art');
 COPY mangareader.comic_authors
     (author_id, comic_id, working_tp)
-from '/home/skushneryuk/study/databases/project/inserts/mangareader_comic_authors.csv'
+from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comic_authors.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -232,7 +232,7 @@ INSERT INTO mangareader.linked_comics
 VALUES (1, 0, 'sequel');
 COPY mangareader.linked_comics
     (comic_id1, comic_id2, relation_tp)
-from '/home/skushneryuk/study/databases/project/inserts/mangareader_linked_comics.csv'
+from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_linked_comics.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -242,7 +242,7 @@ INSERT INTO mangareader.pages_read
 VALUES (1, 0, 1, '10.05.2021 15:54:00');
 COPY mangareader.pages_read
     (user_id, chapter_id, page_num, read_dttm)
-from '/home/skushneryuk/study/databases/project/inserts/mangareader_pages_read.csv'
+from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_pages_read.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -362,3 +362,150 @@ EXECUTE PROCEDURE mangareader.update_comic_links_func();
 
 
 -----------------Сложные преставления----------------------
+
+-- 1. join: users [равенство user_id] favorites [равенство comic_id] comics
+-- для получения статистики по популярности тех или иных произведений, а так же активности пользователя
+
+CREATE VIEW mangareader_views.comic_favorability AS
+SELECT users.user_id,
+       users.user_nm,
+       users.register_dttm as user_register_dttm,
+       fav_n_comics.comic_id,
+       fav_n_comics.comic_nm,
+       fav_n_comics.chapter_cnt,
+       fav_n_comics.add_dttm as comic_add_dttm
+FROM mangareader.users
+INNER JOIN (
+    SELECT c.comic_nm,
+           c.chapter_cnt,
+           c.comic_id,
+           c.add_dttm,
+           fav.user_id
+    FROM mangareader.favorites fav
+        INNER JOIN mangareader.comics c
+            ON fav.comic_id = c.comic_id
+) AS fav_n_comics on users.user_id = fav_n_comics.user_id;
+
+-- 2. join: users [равенство user_id] pages_read [равенство chapter_id] chapters
+-- для получения статистики по популярности тех или иных произведений, насколько много их читают и т.д.
+
+CREATE VIEW mangareader_views.comic_readability AS
+SELECT read_chapters.*,
+       users.user_nm,
+       users.register_dttm as user_register_dttm
+FROM mangareader.users
+INNER JOIN (
+    SELECT c.chapter_id,
+           c.comic_id,
+           c.chapter_nm,
+           c.chapter_num,
+           c.translator_id,
+           c.page_cnt,
+           c.lang,
+           pr.page_num,
+           pr.read_dttm,
+           pr.user_id
+    FROM mangareader.pages_read pr
+        INNER JOIN mangareader.chapters c
+            ON pr.chapter_id = c.chapter_id
+) AS read_chapters on users.user_id = read_chapters.user_id;
+
+
+-- 3. join: translators [равенство translator_id] chapters [равенство comic_id] comics
+-- для получения информации о том, над какими проектами работают переводчики или какие
+-- переводчики работают над конкретным произведением, каков их вклад
+
+CREATE VIEW mangareader_views.translators_work AS
+SELECT comic_chapters.*,
+       translators.translator_nm
+FROM mangareader.translators
+INNER JOIN (
+    SELECT c.comic_id,
+           c.comic_nm,
+           c.chapter_cnt,
+           ch.chapter_id,
+           ch.chapter_num,
+           ch.chapter_nm,
+           ch.page_cnt,
+           ch.lang,
+           ch.translator_id
+    FROM mangareader.chapters ch
+        INNER JOIN mangareader.comics c
+            ON ch.comic_id = c.comic_id
+) AS comic_chapters on translators.translator_id = comic_chapters.translator_id;
+
+
+---------------------------Процедуры (функции)------------------------------
+
+-- 1. Получить статистику пользователя по количеству прочитанных страниц (глав?)
+-- за все время пребывания на сайте
+
+CREATE OR REPLACE FUNCTION mangareader.count_all_user_read(arg_user_id integer) RETURNS integer as
+$$
+DECLARE
+    user_pages_read integer = (SELECT count(*)
+                               FROM mangareader_views.comic_readability cr
+                               WHERE arg_user_id = cr.user_id);
+BEGIN
+    RETURN user_pages_read;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT (mangareader.count_all_user_read(1));
+
+
+-- 2. Получить всех переводчиков, поработавших над переводом конкретного произведения
+CREATE OR REPLACE FUNCTION mangareader.get_comic_translators(arg_comic_id integer)
+RETURNS table (
+    translator_id integer,
+    translator_nm varchar(255)
+)
+AS $$
+BEGIN
+    RETURN QUERY SELECT
+           tw.translator_id,
+           tw.translator_nm
+    FROM
+         mangareader_views.translators_work tw
+    WHERE arg_comic_id = tw.comic_id;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * from mangareader.get_comic_translators(0);
+
+
+-- 2.5) Вернуть id произведений автора
+DROP FUNCTION IF EXISTS mangareader.get_author_works;
+CREATE OR REPLACE FUNCTION mangareader.get_author_works(arg_author_id integer)
+RETURNS table (comic_id integer,
+               author_id integer)
+AS $$
+BEGIN
+    RETURN QUERY SELECT ca.comic_id, ca.author_id
+                 FROM mangareader.comic_authors ca
+                 WHERE ca.author_id = arg_author_id;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * from mangareader.get_author_works(0);
+
+-- 3) Получить количество пользователей, которые любят определенного автора
+-- (в их избранных находится не менее 50% процентов произведений этого автора)
+CREATE OR REPLACE FUNCTION mangareader.count_comic_fans(arg_author_id integer)  RETURNS integer AS $$
+DECLARE
+    author_works_count integer = (SELECT count(*) FROM
+                                  (SELECT * from mangareader.get_author_works(arg_author_id)) AS author_works);
+    fans_count integer = (SELECT count(*) FROM
+                          (SELECT DISTINCT fav.user_id
+                           FROM (mangareader.favorites fav
+                           INNER JOIN
+                           (SELECT * from mangareader.get_author_works(arg_author_id)) AS author_works
+                           ON fav.comic_id = author_works.comic_id)
+                           GROUP BY fav.user_id
+                           HAVING 2 * COUNT(fav.comic_id) >= author_works_count) AS fans);
+BEGIN
+    RETURN fans_count;
+END;
+$$ LANGUAGE plpgsql;
+
+SELECT * from mangareader.count_comic_fans(0);
