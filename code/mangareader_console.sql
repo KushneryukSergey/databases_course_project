@@ -127,7 +127,29 @@ CREATE TABLE mangareader.pages_read
 
 
 -- Делаем insert-ы для всех таблиц
--- todo сделать функцию, которая позволит избавиться от копипаста
+-- Ниже функция, которая позволит избавиться от копипаста, но она пока плохо работает (нужно поменять порядок copy,
+-- иначе проблема с constraints
+
+CREATE OR REPLACE PROCEDURE mangareader.insert_all_csv() AS
+$$
+DECLARE
+   rec   record;
+BEGIN
+   FOR rec IN
+      SELECT *
+      FROM   pg_tables
+      WHERE  tablename NOT LIKE 'pg\_%' and schemaname = 'mangareader'
+      ORDER  BY tablename
+   LOOP
+       EXECUTE format('COPY mangareader.' || quote_ident(rec.tablename) ||
+                      ' FROM ''/home/skushneryuk/study/databases/project/data/inserts/mangareader_' ||
+                      quote_ident(rec.tablename) || '.csv''' ||
+                      ' DELIMITER '',''' ||
+                      ' CSV HEADER;');  -- укажите путь до папки с csv - файлами
+   END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
 
 -- inserts users
 INSERT INTO mangareader.users
@@ -141,7 +163,6 @@ INSERT INTO mangareader.users
  user_page_url)
 VALUES (1001, 'spamer', 'mangareader.com/u/1001');
 COPY mangareader.users
-    (user_id, user_nm, user_avatar_url, user_page_url, register_dttm)
 FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_users.csv'
 DELIMITER ','
 CSV HEADER;
@@ -626,3 +647,4 @@ END;
 $$ LANGUAGE plpgsql;
 
 SELECT * FROM mangareader.count_comic_fans(0);
+
