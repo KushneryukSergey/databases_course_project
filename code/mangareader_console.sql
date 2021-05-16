@@ -207,7 +207,7 @@ INSERT INTO mangareader.comments
 VALUES (0, 0, 1, 'лутшая манга евер');
 COPY mangareader.comments
     (comment_id, comic_id, user_id, comment_txt, comment_dttm)
-from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comments.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comments.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -217,7 +217,7 @@ INSERT INTO mangareader.favorites
 VALUES (1, 0);
 COPY mangareader.favorites
     (user_id, comic_id)
-from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_favorites.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_favorites.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -227,7 +227,7 @@ INSERT INTO mangareader.comic_authors
 VALUES (0, 0, 'art');
 COPY mangareader.comic_authors
     (author_id, comic_id, working_tp)
-from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comic_authors.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_comic_authors.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -237,7 +237,7 @@ INSERT INTO mangareader.linked_comics
 VALUES (1, 0, 'sequel');
 COPY mangareader.linked_comics
     (comic_id1, comic_id2, relation_tp)
-from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_linked_comics.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_linked_comics.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -247,7 +247,7 @@ INSERT INTO mangareader.pages_read
 VALUES (1, 0, 1, '10.05.2021 15:54:00');
 COPY mangareader.pages_read
     (user_id, chapter_id, page_num, read_dttm)
-from '/home/skushneryuk/study/databases/project/data/inserts/mangareader_pages_read.csv'
+FROM '/home/skushneryuk/study/databases/project/data/inserts/mangareader_pages_read.csv'
 DELIMITER ','
 CSV HEADER;
 
@@ -257,7 +257,7 @@ UPDATE mangareader.users
 SET user_nm = '$UPERshoujoG1RL'
 WHERE user_nm = 'shoujoG1RL';
 
-SELECT * from mangareader.users;
+SELECT * FROM mangareader.users;
 
 DELETE FROM mangareader.users
 WHERE user_nm = 'spamer';
@@ -292,8 +292,8 @@ SELECT ordered_last_chapters.translator_nm,
 FROM
     mangareader.comics c
 INNER JOIN
-(SELECT row_number() over (partition by tr.translator_id
-                          order by last_chapters.valid_from_dttm DESC) as ch_order,
+(SELECT row_number() OVER (partition by tr.translator_id
+                          order by last_chapters.valid_from_dttm DESC) AS ch_order,
        last_chapters.*,
        tr.translator_nm
 FROM
@@ -311,62 +311,63 @@ WHERE ordered_last_chapters.ch_order <= 3;
 
 
 ---------------Добавляем индексы------------------------
-create index on mangareader.users(user_id);
-create index on mangareader.authors(author_id);
-create index on mangareader.translators(translator_id);
-create index on mangareader.comics(comic_id);
-create index on mangareader.comments(comment_id);
-create index on mangareader.chapters(chapter_id);
+CREATE INDEX ON mangareader.users(user_id);
+CREATE INDEX ON mangareader.authors(author_id);
+CREATE INDEX ON mangareader.translators(translator_id);
+CREATE INDEX ON mangareader.comics(comic_id);
+CREATE INDEX ON mangareader.comments(comment_id);
+CREATE INDEX ON mangareader.chapters(chapter_id);
 
-create index on mangareader.favorites(comic_id, user_id);
-create index on mangareader.comic_authors(comic_id, author_id);
-create index on mangareader.linked_comics(comic_id1, comic_id2);
-create index on mangareader.pages_read(chapter_id, read_dttm, user_id, page_num);
+CREATE INDEX ON mangareader.favorites(comic_id, user_id);
+CREATE INDEX ON mangareader.comic_authors(comic_id, author_id);
+CREATE INDEX ON mangareader.linked_comics(comic_id1, comic_id2);
+CREATE INDEX ON mangareader.pages_read(chapter_id, read_dttm, user_id, page_num);
 
 
 ---------------Добавляем представления------------------------
 -- имеет смысл еще подумать над полями
-create schema mangareader_views;
+DROP SCHEMA IF EXISTS mangareader_views CASCADE;
+CREATE schema mangareader_views;
 
-create view mangareader_views.users as
-select *
-from mangareader.users as u;
+CREATE VIEW mangareader_views.users AS
+SELECT *
+FROM mangareader.users AS u;
 
-create view mangareader_views.authors as
-select *
-from mangareader.authors as u;
+CREATE VIEW mangareader_views.authors AS
+SELECT *
+FROM mangareader.authors AS u;
 
-create view mangareader_views.translators as
-select *
-from mangareader.translators as u;
+CREATE VIEW mangareader_views.translators AS
+SELECT *
+FROM mangareader.translators AS u;
 
-create view mangareader_views.comics as
-select *
-from mangareader.comics as u;
+CREATE VIEW mangareader_views.comics AS
+SELECT *
+FROM mangareader.comics AS u;
 
-create view mangareader_views.comments as
-select *
-from mangareader.comments as u;
+CREATE VIEW mangareader_views.comments AS
+SELECT *
+FROM mangareader.comments AS u;
 
-create view mangareader_views.chapters as
-select *
-from mangareader.chapters as u;
+CREATE VIEW mangareader_views.chapters AS
+SELECT *
+FROM mangareader.chapters AS u;
 
-create view mangareader_views.favorites as
-select *
-from mangareader.favorites as u;
+CREATE VIEW mangareader_views.favorites AS
+SELECT *
+FROM mangareader.favorites AS u;
 
-create view mangareader_views.comic_authors as
-select *
-from mangareader.comic_authors as u;
+CREATE VIEW mangareader_views.comic_authors AS
+SELECT *
+FROM mangareader.comic_authors AS u;
 
-create view mangareader_views.linked_comics as
-select *
-from mangareader.linked_comics as u;
+CREATE VIEW mangareader_views.linked_comics AS
+SELECT *
+FROM mangareader.linked_comics AS u;
 
-create view mangareader_views.pages_read as
-select *
-from mangareader.pages_read as u;
+CREATE VIEW mangareader_views.pages_read AS
+SELECT *
+FROM mangareader.pages_read AS u;
 
 -------------------Триггеры-----------------------
 -- По идее, стоит их включить до insert-ов
@@ -377,7 +378,7 @@ from mangareader.pages_read as u;
 -- comic_id и chapter_num), то нужно у старой версии главы обновить
 -- поле valid_to_dttm на наш valid_from_dttm
 
-create or replace function mangareader.update_chapter_valid_to_func() RETURNS TRIGGER AS
+CREATE or replace function mangareader.update_chapter_valid_to_func() RETURNS TRIGGER AS
 $$
 BEGIN
     UPDATE mangareader.chapters
@@ -390,7 +391,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS update_chapter_valid_to on mangareader.chapters;
+DROP TRIGGER IF EXISTS update_chapter_valid_to ON mangareader.chapters;
 CREATE TRIGGER update_chapter_valid_to
     BEFORE INSERT
     ON mangareader.chapters
@@ -404,7 +405,7 @@ EXECUTE PROCEDURE mangareader.update_chapter_valid_to_func();
 -- если добавили информацию, что произведение1 - сиквел произведения2, то
 -- нужно добавить обратную приквел-связь
 
-create or replace function mangareader.update_comic_links_func() RETURNS TRIGGER AS
+CREATE or replace function mangareader.update_comic_links_func() RETURNS TRIGGER AS
 $$
 BEGIN
     IF (NEW.relation_tp = 'sequel') THEN
@@ -417,7 +418,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS update_links on mangareader.linked_comics;
+DROP TRIGGER IF EXISTS update_links ON mangareader.linked_comics;
 CREATE TRIGGER update_links
     BEFORE INSERT
     ON mangareader.linked_comics
@@ -433,11 +434,11 @@ EXECUTE PROCEDURE mangareader.update_comic_links_func();
 CREATE VIEW mangareader_views.comic_favorability AS
 SELECT users.user_id,
        users.user_nm,
-       users.register_dttm as user_register_dttm,
+       users.register_dttm AS user_register_dttm,
        fav_n_comics.comic_id,
        fav_n_comics.comic_nm,
        fav_n_comics.chapter_cnt,
-       fav_n_comics.add_dttm as comic_add_dttm
+       fav_n_comics.add_dttm AS comic_add_dttm
 FROM mangareader.users
 INNER JOIN (
     SELECT c.comic_nm,
@@ -448,7 +449,7 @@ INNER JOIN (
     FROM mangareader.favorites fav
         INNER JOIN mangareader.comics c
             ON fav.comic_id = c.comic_id
-) AS fav_n_comics on users.user_id = fav_n_comics.user_id;
+) AS fav_n_comics ON users.user_id = fav_n_comics.user_id;
 
 -- 2. join: users [равенство user_id] pages_read [равенство chapter_id] chapters
 -- для получения статистики по популярности тех или иных произведений, насколько много их читают и т.д.
@@ -456,7 +457,7 @@ INNER JOIN (
 CREATE VIEW mangareader_views.comic_readability AS
 SELECT read_chapters.*,
        users.user_nm,
-       users.register_dttm as user_register_dttm
+       users.register_dttm AS user_register_dttm
 FROM mangareader.users
 INNER JOIN (
     SELECT c.chapter_id,
@@ -472,7 +473,7 @@ INNER JOIN (
     FROM mangareader.pages_read pr
         INNER JOIN mangareader.chapters c
             ON pr.chapter_id = c.chapter_id
-) AS read_chapters on users.user_id = read_chapters.user_id;
+) AS read_chapters ON users.user_id = read_chapters.user_id;
 
 
 -- 3. join: translators [равенство translator_id] chapters [равенство comic_id] comics
@@ -496,15 +497,15 @@ INNER JOIN (
     FROM mangareader.chapters ch
         INNER JOIN mangareader.comics c
             ON ch.comic_id = c.comic_id
-) AS comic_chapters on translators.translator_id = comic_chapters.translator_id;
+) AS comic_chapters ON translators.translator_id = comic_chapters.translator_id;
 
 
 ---------------------------Процедуры (функции)------------------------------
 
--- 1. Получить статистику пользователя по количеству прочитанных страниц (глав?)
+-- 1. Получить статистику пользователя по количеству прочитанных страниц
 -- за все время пребывания на сайте
 
-CREATE OR REPLACE FUNCTION mangareader.count_all_user_read(arg_user_id integer) RETURNS integer as
+CREATE OR REPLACE FUNCTION mangareader.count_all_user_read(arg_user_id integer) RETURNS integer AS
 $$
 DECLARE
     user_pages_read integer = (SELECT count(*)
@@ -535,7 +536,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * from mangareader.get_comic_translators(0);
+SELECT * FROM mangareader.get_comic_translators(0);
 
 
 -- 2.5) Вернуть id произведений автора
@@ -551,19 +552,19 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * from mangareader.get_author_works(0);
+SELECT * FROM mangareader.get_author_works(0);
 
 -- 3) Получить количество пользователей, которые любят определенного автора
 -- (в их избранных находится не менее 50% процентов произведений этого автора)
 CREATE OR REPLACE FUNCTION mangareader.count_comic_fans(arg_author_id integer)  RETURNS integer AS $$
 DECLARE
     author_works_count integer = (SELECT count(*) FROM
-                                  (SELECT * from mangareader.get_author_works(arg_author_id)) AS author_works);
+                                  (SELECT * FROM mangareader.get_author_works(arg_author_id)) AS author_works);
     fans_count integer = (SELECT count(*) FROM
                           (SELECT DISTINCT fav.user_id
                            FROM (mangareader.favorites fav
                            INNER JOIN
-                           (SELECT * from mangareader.get_author_works(arg_author_id)) AS author_works
+                           (SELECT * FROM mangareader.get_author_works(arg_author_id)) AS author_works
                            ON fav.comic_id = author_works.comic_id)
                            GROUP BY fav.user_id
                            HAVING 2 * COUNT(fav.comic_id) >= author_works_count) AS fans);
@@ -572,4 +573,4 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-SELECT * from mangareader.count_comic_fans(0);
+SELECT * FROM mangareader.count_comic_fans(0);
