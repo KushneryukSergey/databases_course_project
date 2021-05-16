@@ -25,6 +25,14 @@
 
 #### Inserts - ready
 
+#### Queries - ready
+
 #### Indexes - ready
 
 #### Triggers - ready
+
+#### Functions - ready
+
+#### Views - ready
+
+#### Complex views - ready

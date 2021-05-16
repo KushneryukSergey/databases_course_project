@@ -283,7 +283,6 @@ ORDER BY chapters DESC;
 -- 2. Хотим узнать, что последнее сделали переводчики на сайте, т.е. какие последние главы перевели
 -- Для каждого переводчика узнаем три последних актуальных переведенных главы
 
-
 SELECT ordered_last_chapters.translator_nm,
        ordered_last_chapters.ch_order,
        ordered_last_chapters.chapter_nm,
@@ -309,6 +308,59 @@ ON ordered_last_chapters.comic_id = c.comic_id
 WHERE ordered_last_chapters.ch_order <= 3;
 
 
+-- 3. Хотим узнать что нового на сайте. Выведем последние 20 актуальных глав на сайте
+
+SELECT ordered_chapters.ch_order,
+       c.comic_nm,
+       ordered_chapters.chapter_nm,
+       ordered_chapters.valid_from_dttm
+FROM
+mangareader.comics c
+INNER JOIN
+(SELECT row_number() OVER (order by ch.valid_from_dttm DESC) AS ch_order,
+        ch.comic_id,
+        ch.chapter_nm,
+        ch.valid_from_dttm
+FROM mangareader.chapters ch
+WHERE ch.valid_to_dttm = '01.01.5999 00:00:00') as ordered_chapters
+ON c.comic_id = ordered_chapters.comic_id
+WHERE ordered_chapters.ch_order <= 20
+ORDER BY ordered_chapters.ch_order;
+
+
+-- 4. Кто последний зарегистрировавшийся пользователь?
+-- Выведем его никнейм и дату регистрации
+
+SELECT * FROM
+(SELECT row_number() OVER (order by u.register_dttm DESC) AS register_order,
+        u.user_nm,
+        u.register_dttm
+FROM mangareader.users u) as ordered_users
+WHERE ordered_users.register_order = 1;
+
+-- 5. Какой был последний комментарий на сайте?
+-- Выведем его автора, текст и к какому оно произведению
+
+
+SELECT u.user_nm,
+       comic_comment.comic_nm,
+       comic_comment.comment_txt,
+       comic_comment.comment_dttm
+       FROM
+    mangareader.users u
+INNER JOIN
+(SELECT * FROM
+    mangareader.comics c
+INNER JOIN
+(SELECT row_number() OVER (order by com.comment_dttm DESC) AS comment_order,
+        com.user_id,
+        com.comment_txt,
+        com.comment_dttm,
+        com.comic_id
+FROM mangareader.comments com) as ordered_comments
+ON ordered_comments.comic_id = c.comic_id
+WHERE ordered_comments.comment_order = 1) AS comic_comment
+ON u.user_id = comic_comment.user_id;
 
 ---------------Добавляем индексы------------------------
 CREATE INDEX ON mangareader.users(user_id);
@@ -330,44 +382,44 @@ DROP SCHEMA IF EXISTS mangareader_views CASCADE;
 CREATE schema mangareader_views;
 
 CREATE VIEW mangareader_views.users AS
-SELECT *
+SELECT u.user_nm, u.register_dttm, u.user_avatar_url
 FROM mangareader.users AS u;
 
 CREATE VIEW mangareader_views.authors AS
-SELECT *
-FROM mangareader.authors AS u;
+SELECT a.author_nm, a.author_avatar_url
+FROM mangareader.authors AS a;
 
 CREATE VIEW mangareader_views.translators AS
-SELECT *
-FROM mangareader.translators AS u;
+SELECT t.translator_nm, t.translator_avatar_url
+FROM mangareader.translators AS t;
 
 CREATE VIEW mangareader_views.comics AS
-SELECT *
-FROM mangareader.comics AS u;
+SELECT c.comic_nm, c.chapter_cnt, c.add_dttm
+FROM mangareader.comics AS c;
 
 CREATE VIEW mangareader_views.comments AS
-SELECT *
-FROM mangareader.comments AS u;
+SELECT com.comment_txt, com.comment_dttm
+FROM mangareader.comments AS com;
 
 CREATE VIEW mangareader_views.chapters AS
-SELECT *
-FROM mangareader.chapters AS u;
+SELECT ch.chapter_nm, ch.chapter_num, ch.lang, ch.page_cnt, ch.valid_from_dttm
+FROM mangareader.chapters AS ch;
 
 CREATE VIEW mangareader_views.favorites AS
 SELECT *
-FROM mangareader.favorites AS u;
+FROM mangareader.favorites AS fav;
 
 CREATE VIEW mangareader_views.comic_authors AS
 SELECT *
-FROM mangareader.comic_authors AS u;
+FROM mangareader.comic_authors AS ca;
 
 CREATE VIEW mangareader_views.linked_comics AS
 SELECT *
-FROM mangareader.linked_comics AS u;
+FROM mangareader.linked_comics AS lc;
 
 CREATE VIEW mangareader_views.pages_read AS
 SELECT *
-FROM mangareader.pages_read AS u;
+FROM mangareader.pages_read AS pr;
 
 -------------------Триггеры-----------------------
 -- По идее, стоит их включить до insert-ов
