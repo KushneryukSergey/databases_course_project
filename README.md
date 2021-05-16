@@ -4,19 +4,23 @@
 
 #### Entity-relationship diagram - done
 
-![ERD](./erd.png)
+![ERD](./graph/erd.png)
 
 #### Logical model - done
 
-![log_model](./logic_model.png)
+![log_model](./graph/logic_model.png)
 
 
 #### Physical model - done
 
-[Физическая модель](./physical_model.pdf)
+[Физическая модель](./graph/physical_model.pdf)
 
 #### Таблица - done
 
-[Таблица и схема](./mangareader_console.sql)
+[Таблица и схема](./code/mangareader_console.sql)
 
-#### Inserts - in process
+#### Inserts - ready
+
+#### Indexes - ready
+
+#### Triggers - ready
